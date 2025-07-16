@@ -3,140 +3,753 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SNRX v3.5 - AI Sniper Bot</title>
+  <title>SNRX v3.5 - AI Trading Intelligence</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <style>
-    body {
+    * {
       margin: 0;
-      background: #0f0f0f;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #00ffc8;
+      --primary-dark: #00d4a3;
+      --bg-dark: #0a0a0a;
+      --bg-medium: #141414;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --text-muted: #666;
+      --accent: #ff3366;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow-x: hidden;
-    }
-    #splash {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: #0f0f0f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      transition: opacity 1s ease-out;
-    }
-    #splash img {
-      width: 140px;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.05); opacity: 1; }
-    }
-
-    .container {
-      text-align: center;
-      padding: 5rem 1rem 3rem;
-    }
-    .logo {
-      width: 140px;
-      margin-bottom: 1rem;
-    }
-    h1 {
-      font-size: 2.5rem;
-      margin: 0.5em 0;
-    }
-    #typing {
-      font-size: 1.2rem;
-      color: #bbb;
-      height: 1.5em;
-    }
-    .buttons a {
-      display: inline-block;
-      margin: 1rem;
-      padding: 0.8rem 1.6rem;
-      font-weight: bold;
-      text-decoration: none;
-      color: #000;
-      background: #00ffc8;
-      border-radius: 12px;
-      transition: 0.3s ease;
-    }
-    .buttons a:hover {
-      background: #00d4a3;
-      transform: scale(1.05);
-    }
-
-    .stats {
-      margin-top: 3rem;
-      font-size: 0.95rem;
-      color: #aaa;
       line-height: 1.6;
     }
 
-    .footer {
-      margin-top: 3rem;
-      color: #555;
-      font-size: 0.8rem;
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
     }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 1.8rem; }
-      #typing { font-size: 1rem; }
-      .logo, #splash img { width: 100px; }
-      .buttons a { display: block; width: 80%; margin: 1rem auto; }
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 80%, rgba(0, 255, 200, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(255, 51, 102, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 40%, rgba(0, 212, 163, 0.05) 0%, transparent 50%);
+      animation: rotate 30s linear infinite;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Splash Screen */
+    #splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.8s ease-out;
+    }
+
+    .splash-content {
+      text-align: center;
+    }
+
+    .splash-logo {
+      width: 160px;
+      height: 160px;
+      position: relative;
+      margin: 0 auto 2rem;
+    }
+
+    .splash-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 30px rgba(0, 255, 200, 0.5));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .loading-bar {
+      width: 200px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .loading-progress {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      animation: load 2s ease-out forwards;
+    }
+
+    @keyframes load {
+      to { width: 100%; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Main Container */
+    .container {
+      opacity: 0;
+      animation: fadeIn 1s ease-out 0.5s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Header */
+    header {
+      padding: 2rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-logo img {
+      width: 40px;
+      height: 40px;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 200, 0.5));
+    }
+
+    .nav-logo span {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 2rem 2rem;
+      position: relative;
+    }
+
+    .hero-content {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 255, 200, 0.1);
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      border-radius: 50px;
+      font-size: 0.85rem;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 200%;
+      animation: gradient 3s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+
+    /* CTA Buttons */
+    .cta-buttons {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 4rem;
+    }
+
+    .btn {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--bg-dark);
+      box-shadow: 0 10px 30px rgba(0, 255, 200, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0, 255, 200, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      transform: translateX(-100%);
+      animation: scan 3s linear infinite;
+    }
+
+    @keyframes scan {
+      to { transform: translateX(100%); }
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(0, 255, 200, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 255, 200, 0.1);
+    }
+
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 20px currentColor);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 4rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 3rem;
+      margin-top: 3rem;
+    }
+
+    .feature-card {
+      text-align: left;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: slideUp 0.6s ease forwards;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, rgba(0, 255, 200, 0.2), rgba(0, 212, 163, 0.1));
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-title {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .feature-description {
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    /* Live Ticker */
+    .ticker {
+      background: var(--bg-medium);
+      padding: 1rem;
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ticker-content {
+      display: flex;
+      animation: scroll 30s linear infinite;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      padding: 0 2rem;
+      white-space: nowrap;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .ticker-item span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Footer */
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .social-links a {
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      transition: all 0.3s;
+    }
+
+    .social-links a:hover {
+      color: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .hero-description {
+        font-size: 1.1rem;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="bg-animation"></div>
+
   <!-- Splash Screen -->
   <div id="splash">
-    <img src="snrx-logo.png" alt="SNRX Logo" />
+    <div class="splash-content">
+      <div class="splash-logo">
+        <img src="snrx-logo.png" alt="SNRX Logo" />
+      </div>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="container" style="display:none;" id="main">
-    <img src="snrx-logo.png" alt="SNRX Logo" class="logo" />
-    <h1>SNRX Trading System</h1>
-    <p id="typing"></p>
+  <!-- Main Container -->
+  <div class="container" id="main" style="display: none;">
+    <!-- Header -->
+    <header>
+      <nav>
+        <div class="nav-logo">
+          <img src="snrx-logo.png" alt="SNRX" />
+          <span>SNRX</span>
+        </div>
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#stats">Performance</a></li>
+          <li><a href="https://t.me/snrxsignalhub">Telegram</a></li>
+          <li><a href="https://github.com/nzkbuild/SNRX-Lite">GitHub</a></li>
+        </ul>
+      </nav>
+    </header>
 
-    <div class="buttons">
-      <a href="https://t.me/snrxsignalhub" target="_blank">Join Telegram</a>
-      <a href="https://github.com/nzkbuild/SNRX-Lite" target="_blank">View on GitHub</a>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">🚀 Version 3.5 Beta Now Live</div>
+        <h1>Next-Gen <span class="gradient-text">AI Trading</span> Intelligence</h1>
+        <p class="hero-description">
+          Precision-engineered sniper signals powered by advanced machine learning. 
+          Real-time analysis, unmatched accuracy, seamless automation.
+        </p>
+        
+        <div class="cta-buttons">
+          <a href="https://t.me/snrxsignalhub" target="_blank" class="btn btn-primary">
+            <span>Join Telegram Channel</span>
+            <span>→</span>
+          </a>
+          <a href="https://github.com/nzkbuild/SNRX-Lite" target="_blank" class="btn btn-secondary">
+            <span>View Source Code</span>
+          </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="stats">
+          <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">95.6%</div>
+            <div class="stat-label">30-Day Win Rate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value">&lt;50ms</div>
+            <div class="stat-label">Signal Latency</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value">24/7</div>
+            <div class="stat-label">Live Monitoring</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value">5000+</div>
+            <div class="stat-label">Active Traders</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Ticker -->
+    <div class="ticker">
+      <div class="ticker-content">
+        <div class="ticker-item">EURUSD: <span>+45 pips</span></div>
+        <div class="ticker-item">GBPJPY: <span>+72 pips</span></div>
+        <div class="ticker-item">XAUUSD: <span>+120 pips</span></div>
+        <div class="ticker-item">BTCUSD: <span>+3.2%</span></div>
+        <div class="ticker-item">US30: <span>+85 points</span></div>
+        <div class="ticker-item">EURUSD: <span>+45 pips</span></div>
+        <div class="ticker-item">GBPJPY: <span>+72 pips</span></div>
+        <div class="ticker-item">XAUUSD: <span>+120 pips</span></div>
+        <div class="ticker-item">BTCUSD: <span>+3.2%</span></div>
+        <div class="ticker-item">US30: <span>+85 points</span></div>
+      </div>
     </div>
 
-    <div class="stats">
-      <p>🔥 95.6% Win Rate (30D Rolling)</p>
-      <p>📊 SmartMode Active | Auto-Zone Engine</p>
-      <p>📡 Live MT5 → Python → Telegram</p>
-    </div>
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">
+        Cutting-Edge <span class="gradient-text">Features</span>
+      </h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+        Built with the latest technology stack for maximum performance and reliability
+      </p>
 
-    <div class="footer">
-      <p>v3.5 Beta | Built by NZKBuild</p>
-    </div>
+      <div class="features-grid">
+        <div class="feature-card" style="--delay: 0.1s">
+          <div class="feature-icon">🤖</div>
+          <h3 class="feature-title">SmartMode AI</h3>
+          <p class="feature-description">
+            Advanced neural networks analyze market patterns in real-time, 
+            adapting to changing conditions with machine precision.
+          </p>
+        </div>
+        <div class="feature-card" style="--delay: 0.2s">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Auto-Zone Engine</h3>
+          <p class="feature-description">
+            Automatically identifies key support and resistance zones, 
+            optimizing entry and exit points for maximum profitability.
+          </p>
+        </div>
+        <div class="feature-card" style="--delay: 0.3s">
+          <div class="feature-icon">🔗</div>
+          <h3 class="feature-title">MT5 Integration</h3>
+          <p class="feature-description">
+            Seamless connection with MetaTrader 5 through Python bridge, 
+            enabling instant signal execution and portfolio management.
+          </p>
+        </div>
+        <div class="feature-card" style="--delay: 0.4s">
+          <div class="feature-icon">📱</div>
+          <h3 class="feature-title">Telegram Alerts</h3>
+          <p class="feature-description">
+            Real-time notifications delivered instantly to your device, 
+            ensuring you never miss a profitable trading opportunity.
+          </p>
+        </div>
+        <div class="feature-card" style="--delay: 0.5s">
+          <div class="feature-icon">🛡️</div>
+          <h3 class="feature-title">Risk Management</h3>
+          <p class="feature-description">
+            Built-in protection with dynamic stop-loss and take-profit 
+            calculations based on market volatility and risk tolerance.
+          </p>
+        </div>
+        <div class="feature-card" style="--delay: 0.6s">
+          <div class="feature-icon">📈</div>
+          <h3 class="feature-title">Performance Analytics</h3>
+          <p class="feature-description">
+            Comprehensive dashboard with detailed metrics, trade history, 
+            and performance insights to optimize your strategy.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="social-links">
+          <a href="https://t.me/snrxsignalhub" target="_blank">📱</a>
+          <a href="https://github.com/nzkbuild/SNRX-Lite" target="_blank">💻</a>
+          <a href="#" target="_blank">📧</a>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          SNRX v3.5 Beta | Built with ❤️ by NZKBuild<br>
+          © 2025 SNRX Trading System. All rights reserved.
+        </p>
+      </div>
+    </footer>
   </div>
 
   <script>
-    // Splash timeout
-    setTimeout(() => {
-      document.getElementById("splash").style.opacity = 0;
+    // Splash screen and page initialization
+    window.addEventListener('load', () => {
       setTimeout(() => {
-        document.getElementById("splash").style.display = "none";
-        document.getElementById("main").style.display = "block";
-        startTyping();
-      }, 1000);
-    }, 1800);
+        const splash = document.getElementById('splash');
+        splash.style.opacity = '0';
+        
+        setTimeout(() => {
+          splash.style.display = 'none';
+          document.getElementById('main').style.display = 'block';
+          
+          // Initialize animations
+          observeElements();
+        }, 800);
+      }, 2000);
+    });
 
-    // Typing effect
-    const text = "AI-powered sniper signals. Real logic. Real results.";
-    let i = 0;
-    function startTyping() {
-      const target = document.getElementById("typing");
-      const interval = setInterval(() => {
-        target.innerHTML += text.charAt(i);
-        i++;
-        if (i >= text.length) clearInterval(interval);
-      }, 40);
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Intersection Observer for scroll animations
+    function observeElements() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.animationPlayState = 'running';
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.feature-card').forEach(el => {
+        el.style.animationPlayState = 'paused';
+        observer.observe(el);
+      });
     }
+
+    // Dynamic stats counter animation
+    function animateValue(element, start, end, duration) {
+      const range = end - start;
+      const increment = range / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= end) {
+          current = end;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current) + (element.dataset.suffix || '');
+      }, 16);
+    }
+
+    // Initialize counter animations when visible
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+          entry.target.classList.add('animated');
+          const value = entry.target.textContent;
+          if (value.includes('%')) {
+            animateValue(entry.target, 0, 95.6, 1500);
+            entry.target.dataset.suffix = '%';
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.stat-value').forEach(el => {
+      if (el.textContent.includes('%')) {
+        statsObserver.observe(el);
+      }
+    });
   </script>
 </body>
 </html>
